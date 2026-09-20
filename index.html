@@ -6,6 +6,10 @@
 <meta name="theme-color" content="#090909">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <title>EXIT PLAYER</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -857,6 +861,11 @@ function captureOffset(){if(lyStart==null)return;lyOffset=sheetEl.scrollTop-auto
 sheetEl.addEventListener("touchstart",()=>{dragging=true},{passive:true});
 sheetEl.addEventListener("touchend",()=>{clearTimeout(settle);settle=setTimeout(()=>{captureOffset();dragging=false},250)},{passive:true});
 sheetEl.addEventListener("wheel",()=>{dragging=true;clearTimeout(settle);settle=setTimeout(()=>{captureOffset();dragging=false},300)},{passive:true});
+
+// ================= PWA =================
+if("serviceWorker" in navigator && location.protocol==="https:"){
+  window.addEventListener("load",()=>{navigator.serviceWorker.register("sw.js").catch(e=>console.warn("sw",e))});
+}
 
 // ================= 起動 =================
 $("refreshBtn").addEventListener("click",()=>loadShared(true));
