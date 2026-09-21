@@ -2,7 +2,7 @@
 // アプリ本体（HTML・アイコン）だけを端末に置き、電波なしでも起動できるようにする。
 // 曲・歌詞・GitHub API はここでは扱わない（曲はアプリ内の「端末に取り込む」で保存する）。
 // index.html を更新したら、下の VERSION を上げること（例：v1 → v2）。
-const VERSION = "exit-player-v1";
+const VERSION = "exit-player-v3";
 const SHELL = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {

@@ -242,6 +242,7 @@ textarea{width:100%;min-height:220px;flex:1;font:inherit;font-size:15px;line-hei
     <h2 id="lyTitle">歌詞</h2>
     <textarea id="lyText" placeholder="歌詞を貼り付けてください。行ごとの時刻は要りません。"></textarea>
     <div class="row"><button id="lyCancel">閉じる</button><button class="primary" id="lySave">保存</button></div>
+    <button id="reanalyze" style="min-height:44px;font-size:14px;font-weight:500">コード判定をやり直す（曲を差し替えた時）</button>
   </div>
 </div>
 <div class="analyze" id="analyze"><div class="big silvertext">コードを判定中</div><div class="pr"><i id="anFill"></i></div><p id="anMsg">この曲は初めてなので、1回だけ判定します。結果は保存されます。</p></div>
@@ -510,7 +511,7 @@ async function loadShared(force){
     if(!names){try{const r2=await fetch(`https://${CFG.user}.github.io/${CFG.repo}/${CFG.dir}/list.json`,{cache:"no-store"});if(r2.ok)names=await r2.json()}catch(_){}}
     if(names)toast("共有曲リストは前回のものを使います"); else {toast("共有曲を読み込めませんでした");return}
   }
-  names.sort((a,b)=>a.localeCompare(b,"ja"));
+  names.sort((a,b)=>a.localeCompare(b,"ja",{numeric:true}));
   const metas=await dbAll();
   const shared=names.map(n=>{
     const id="gh-"+n, m=metas.find(x=>x.id===id)||{};
@@ -636,6 +637,11 @@ document.addEventListener("visibilitychange",async()=>{if(document.visibilitySta
 // 歌詞編集
 $("editLy").addEventListener("click",()=>{if(!cur){toast("先に曲を選んでください");return}$("lyTitle").textContent="歌詞："+cur.title;$("lyText").value=lyricsFor(cur);$("lyBack").classList.add("on");$("lyText").focus()});
 $("lyCancel").addEventListener("click",()=>$("lyBack").classList.remove("on"));
+$("reanalyze").addEventListener("click",async()=>{
+  if(!cur)return; if(!confirm(`「${cur.title}」のコード判定をやり直しますか？（歌詞・お気に入りは残ります）`))return;
+  $("lyBack").classList.remove("on"); cur.segs=null; await dbPut(metaOf(cur)); renderList();
+  const ok=await ensureChords(cur); if(ok){loadSongState(cur);toast("判定をやり直しました")}
+});
 $("lySave").addEventListener("click",async()=>{if(!cur)return;cur.lyrics=$("lyText").value;lyricText=cur.lyrics;await dbPut(metaOf(cur));$("lyBack").classList.remove("on");renderList();toast("歌詞を保存しました")});
 
 // フィルタ
