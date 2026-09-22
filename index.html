@@ -18,6 +18,7 @@
 :root{
   --bg:#090909; --panel:#131315; --panel2:#1B1B1E; --ink:#ECECEE; --sub:#8E9096; --dim:#4A4C52; --line:#2A2B30;
   --silver:#C9CCD3; --silver-hi:#F4F5F7; --silver-lo:#8A8D94;
+  --gold:#C9A227; --gold-hi:#E8C766; --gold-lo:#7A621A;
   --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
   box-sizing:border-box;
 }
@@ -31,12 +32,13 @@ body{
 .screen{position:absolute;inset:0;display:none;flex-direction:column}
 .screen.on{display:flex}
 .silvertext{background:linear-gradient(180deg,#FAFAFB 0%,#C9CCD3 55%,#8E9198 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.goldtext{background:linear-gradient(180deg,#F6E3A1 0%,#E8C766 45%,#A8842A 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
 button{
   font:inherit;font-weight:700;font-size:16px;border:1px solid var(--line);border-radius:14px;min-height:50px;padding:0 16px;
   cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;color:var(--ink);background:var(--panel2);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
 }
-button.primary{background:linear-gradient(180deg,#E9EAED,#B9BCC3);color:#0B0B0C;border-color:#D9DBE0}
+button.primary{background:linear-gradient(180deg,#E9EAED,#B9BCC3);color:#0B0B0C;border-color:var(--gold)}
 button:disabled{opacity:.35;cursor:default}
 button:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px solid var(--silver);outline-offset:2px}
 .hint{font-size:13px;color:var(--sub);margin:6px 2px 0}
@@ -46,42 +48,47 @@ button:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px soli
 #home{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:calc(var(--sat) + 14px) 16px calc(var(--sab) + 24px)}
 .brand{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding:0 2px}
 .brand h1{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:800;font-size:28px;margin:0;letter-spacing:-.02em;line-height:1}
+.brand{border-bottom:1px solid var(--gold);padding-bottom:10px}
 .brand .cnt{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:800;font-size:14px;color:var(--sub);letter-spacing:.04em}
-.brand .cnt b{color:var(--silver)}
-.np{background:linear-gradient(180deg,#151517,#0E0E10);border:1px solid var(--line);border-radius:20px;padding:16px 16px 14px;margin-bottom:12px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 10px 30px rgba(0,0,0,.5)}
+.brand .cnt b{color:var(--gold-hi)}
+.np{background:linear-gradient(180deg,#151517,#0E0E10);border:1px solid var(--gold);box-shadow:0 0 0 3px #0E0E10 inset,0 0 0 4px rgba(201,162,39,.35) inset,0 10px 30px rgba(0,0,0,.5);border-radius:20px;padding:16px 16px 14px;margin-bottom:12px;}
 .np .title{font-size:20px;font-weight:700;line-height:1.35;min-height:27px;word-break:break-word}
-.np .meta{font-size:12px;color:var(--sub);letter-spacing:.06em;margin:2px 0 10px;font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:500}
+.np .meta{font-size:12px;color:var(--gold-hi);letter-spacing:.06em;margin:2px 0 10px;font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:500}
 .bar{height:4px;border-radius:2px;background:#2A2B30;overflow:hidden;margin-bottom:6px;position:relative;cursor:pointer}
-.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#8A8D94,#F4F5F7)}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#7A621A,#E8C766)}
 .bar::after{content:"";position:absolute;inset:-12px 0}
 .times{display:flex;justify-content:space-between;font-size:12px;color:var(--sub);font-variant-numeric:tabular-nums;margin-bottom:10px}
 .ctrls{display:grid;grid-template-columns:1fr 1fr 1.6fr 1fr 1fr;gap:8px;align-items:center}
-.ctrls button{min-height:52px;padding:0;font-size:18px;font-weight:500;background:rgba(27,27,30,.8)}
-.ctrls button.mode.on{color:#0B0B0C;background:linear-gradient(180deg,#E9EAED,#B9BCC3);border-color:#D9DBE0}
-.ctrls .play{background:linear-gradient(180deg,#F1F2F4,#BFC2C9);color:#0B0B0C;font-size:24px;border-color:#E3E5E9;font-weight:800;min-height:58px}
+.ctrls button{min-height:52px;padding:0;font-size:18px;font-weight:500;background:rgba(27,27,30,.8);border-color:var(--gold-lo)}
+.ctrls button.mode.on{color:#0B0B0C;background:linear-gradient(180deg,#F6E3A1,#C9A227);border-color:var(--gold-hi)}
+.ctrls .play{background:linear-gradient(180deg,#F1F2F4,#BFC2C9);color:#0B0B0C;font-size:24px;border-color:var(--gold);font-weight:800;min-height:58px;box-shadow:0 0 0 1px rgba(232,199,102,.35),inset 0 1px 0 rgba(255,255,255,.6)}
 .tools{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:8px;margin-top:10px}
-.tools button{min-height:46px;font-size:14px;font-weight:500;padding:0 8px}
-.tools button.on{color:#0B0B0C;background:linear-gradient(180deg,#E9EAED,#B9BCC3);border-color:#D9DBE0;font-weight:700}
+.tools button{min-height:46px;font-size:14px;font-weight:500;padding:0 8px;border-color:var(--gold-lo)}
+.tools button.on{color:#0B0B0C;background:linear-gradient(180deg,#F6E3A1,#C9A227);border-color:var(--gold-hi);font-weight:700}
 .filters{display:flex;gap:8px;margin:14px 0 10px}
-.filters button{min-height:36px;font-size:13px;font-weight:500;border-radius:999px;background:transparent;white-space:nowrap;padding:0 12px}
-.filters button.on{color:#0B0B0C;background:linear-gradient(180deg,#E9EAED,#B9BCC3);border-color:#D9DBE0;font-weight:700}
+.filters button{min-height:36px;font-size:13px;font-weight:500;border-radius:999px;background:transparent;white-space:nowrap;padding:0 12px;border-color:var(--gold-lo)}
+.filters button.on{color:#0B0B0C;background:linear-gradient(180deg,#F6E3A1,#C9A227);border-color:var(--gold-hi);font-weight:700}
 .filters .add{margin-left:auto;background:var(--panel2)}
 .filters #refreshBtn{padding:0 12px;font-size:16px}
 .tr .dl{min-height:36px;width:36px;padding:0;border-radius:10px;background:transparent;border-color:transparent;font-size:16px;color:var(--dim)}
-.tr .dl.on{color:var(--silver-hi)}
-.tr .t small .saved{color:var(--silver)}
-.dlall{width:100%;min-height:44px;font-size:13px;font-weight:500;margin-top:10px;white-space:nowrap}
+.tr .dl.on{color:var(--gold-hi)}
+.tr .t small .saved{color:var(--gold-hi)}
+.dlall{width:100%;min-height:44px;font-size:13px;font-weight:500;margin-top:10px;white-space:nowrap;border-color:var(--gold-lo)}
 input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
 .list{display:flex;flex-direction:column;gap:8px}
-.tr{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 10px 10px 12px;cursor:pointer}
-.tr.cur{border-color:#C9CCD3;background:#17181B}
-.tr .no{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:800;font-size:14px;color:var(--dim);width:26px;flex:0 0 auto}
-.tr.cur .no{color:var(--silver)}
+.tr{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid #3A3220;border-radius:14px;padding:10px 10px 10px 12px;cursor:pointer}
+.tr.cur{border-color:var(--gold);background:#17181B;box-shadow:0 0 0 1px rgba(201,162,39,.25) inset}
+.tr .no{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:800;font-size:14px;color:var(--gold-lo);width:26px;flex:0 0 auto}
+.tr.cur .no{color:var(--gold-hi)}
 .tr .t{flex:1;min-width:0}
-.tr .t b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-weight:500;font-size:16px;line-height:1.3;overflow:hidden;word-break:break-word}
-.tr .t small{display:block;font-size:11px;color:var(--sub);letter-spacing:.05em;font-family:"Bricolage Grotesque",system-ui,sans-serif}
+.tr .t b{display:block;font-weight:500;font-size:16px;line-height:1.3;white-space:nowrap;overflow:hidden}
+.tr .t b span{display:inline-block;will-change:transform}
+.tr .t b.marq span{animation:marq var(--dur,8s) ease-in-out infinite}
+@keyframes marq{0%,18%{transform:translateX(0)}55%,72%{transform:translateX(var(--shift))}100%{transform:translateX(0)}}
+@media (prefers-reduced-motion: reduce){.tr .t b.marq span{animation:none}}
+.tr .t small{display:block;font-size:11px;color:var(--sub);letter-spacing:.05em;font-family:"Bricolage Grotesque",system-ui,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tr .fav,.tr .del{min-height:36px;width:36px;padding:0;border-radius:10px;background:transparent;border-color:transparent;font-size:18px;color:var(--dim)}
-.tr .fav.on{color:var(--silver-hi)}
+.tr .fav.on{color:var(--gold-hi)}
 .tr .del{font-size:14px}
 .fileback{position:absolute;inset:0;background:rgba(0,0,0,.75);display:none;align-items:flex-end;z-index:20}
 .fileback.on{display:flex}
@@ -105,31 +112,32 @@ textarea{width:100%;min-height:220px;flex:1;font:inherit;font-size:15px;line-hei
 .pane.on{display:block}
 #sheet{padding:calc(var(--sat) + 190px) 20px calc(var(--sab) + 60vh)}
 #sheet .ln{font-size:22px;line-height:1.5;padding:6px 0;color:#D6D7DB;font-weight:500;word-break:break-word}
+#sheet .ln.head{color:var(--gold-hi);font-size:14px;letter-spacing:.06em;padding-top:16px}
 #sheet .ln.blank{padding:12px 0}
 #sheet .empty{color:var(--sub);text-align:center;padding:30vh 0}
 
 #chart{padding:calc(var(--sat) + 190px) 16px calc(var(--sab) + 140px)}
 .crow{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px;position:relative}
 .crow:has(.rep){margin-top:20px}
-.crow .rep{position:absolute;right:0;top:-17px;font-size:14px;color:var(--silver);font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:800}
+.crow .rep{position:absolute;right:0;top:-17px;font-size:14px;color:var(--gold-hi);font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:800}
 .cell{
-  background:var(--panel);border:1px solid var(--line);border-radius:12px;min-height:66px;
+  background:var(--panel);border:1px solid #3A3220;border-radius:12px;min-height:66px;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
   font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:800;font-size:22px;letter-spacing:-.02em;color:var(--silver);
 }
 .cell small{font-family:"Zen Kaku Gothic New",system-ui,sans-serif;font-weight:400;font-size:11px;color:var(--dim);font-variant-numeric:tabular-nums}
 .cell.long{font-size:17px}
-.cell.cur{background:linear-gradient(180deg,#F1F2F4,#BFC2C9);color:#0B0B0C;border-color:#E3E5E9}
+.cell.cur{background:linear-gradient(180deg,#F6E3A1,#C9A227);color:#0B0B0C;border-color:var(--gold-hi)}
 .cell.cur small{color:#3A3C42}
 .cell.done{color:var(--silver-lo)}
 .sect{font-size:12px;color:var(--sub);margin:18px 2px 8px;letter-spacing:.06em}
 
 #sect{padding:calc(var(--sat) + 190px) 16px calc(var(--sab) + 140px)}
-.sec{border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:12px 14px 14px;margin-bottom:12px;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
-.sec.cur{border-color:#C9CCD3;box-shadow:0 0 0 1px #C9CCD3 inset,inset 0 1px 0 rgba(255,255,255,.1)}
+.sec{border:1px solid #3A3220;border-radius:16px;background:var(--panel);padding:12px 14px 14px;margin-bottom:12px;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+.sec.cur{border-color:var(--gold);box-shadow:0 0 0 1px rgba(201,162,39,.3) inset,inset 0 1px 0 rgba(255,255,255,.1)}
 .sec .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .sec .label{
-  font:inherit;font-weight:700;font-size:15px;color:#0B0B0C;background:linear-gradient(180deg,#E9EAED,#B9BCC3);
+  font:inherit;font-weight:700;font-size:15px;color:#0B0B0C;background:linear-gradient(180deg,#F6E3A1,#C9A227);
   border:0;border-radius:999px;min-height:34px;padding:0 14px;box-shadow:none;
 }
 .sec .label.unnamed{background:transparent;color:var(--sub);border:1px dashed var(--line)}
@@ -140,11 +148,11 @@ textarea{width:100%;min-height:220px;flex:1;font:inherit;font-size:15px;line-hei
   font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:800;font-size:22px;letter-spacing:-.02em;color:var(--silver);
   padding:2px 6px;border-radius:8px;
 }
-.sec .ch.on{background:linear-gradient(180deg,#F1F2F4,#BFC2C9);color:#0B0B0C}
+.sec .ch.on{background:linear-gradient(180deg,#F6E3A1,#C9A227);color:#0B0B0C}
 .sec .arrow{color:var(--dim);font-size:14px;padding:0 2px}
-.sec .rep{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:800;font-size:14px;color:var(--sub);margin-left:8px;align-self:center}
+.sec .rep{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:800;font-size:14px;color:var(--gold-hi);margin-left:8px;align-self:center}
 .sec .note{font-size:12px;color:var(--sub);margin-top:6px}
-#startTap{
+#startTap{border-color:var(--gold);
   position:absolute;left:16px;right:16px;bottom:calc(var(--sab) + 150px);z-index:3;min-height:60px;font-size:18px;
   background:linear-gradient(180deg,#F1F2F4,#BFC2C9);color:#0B0B0C;border-color:#E3E5E9;display:none;
   box-shadow:0 8px 30px rgba(0,0,0,.6);
@@ -159,24 +167,24 @@ textarea{width:100%;min-height:220px;flex:1;font:inherit;font-size:15px;line-hei
 #top.hide{opacity:0;pointer-events:none}
 .toprow{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .toprow button{min-height:38px;padding:0 12px;font-size:14px;font-weight:500;background:rgba(27,27,30,.7);backdrop-filter:blur(8px)}
-.seg2{display:inline-flex;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:rgba(27,27,30,.7);backdrop-filter:blur(8px)}
+.seg2{display:inline-flex;border:1px solid var(--gold-lo);border-radius:12px;overflow:hidden;background:rgba(27,27,30,.7);backdrop-filter:blur(8px)}
 .seg2 button{border:0;border-radius:0;min-height:38px;padding:0 14px;font-size:14px;font-weight:500;background:transparent;box-shadow:none}
-.seg2 button.on{background:linear-gradient(180deg,#E9EAED,#B9BCC3);color:#0B0B0C;font-weight:700}
+.seg2 button.on{background:linear-gradient(180deg,#F6E3A1,#C9A227);color:#0B0B0C;font-weight:700}
 .nowrow{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-top:6px;min-height:52px}
 .nowl{display:flex;flex-direction:column;gap:2px}
 .nowl .nxt{margin-left:2px}
 .easyrow{display:flex;align-items:center;gap:8px;margin-top:6px}
 .easyrow button{min-height:30px;padding:0 12px;font-size:13px;font-weight:500;background:rgba(27,27,30,.7)}
-.easyrow button.on{background:linear-gradient(180deg,#E9EAED,#B9BCC3);color:#0B0B0C;font-weight:700;border-color:#D9DBE0}
-.easyrow #capo{font-size:13px;color:var(--silver)}
+.easyrow button.on{background:linear-gradient(180deg,#F6E3A1,#C9A227);color:#0B0B0C;font-weight:700;border-color:var(--gold-hi)}
+.easyrow #capo{font-size:13px;color:var(--gold-hi)}
 .dias{display:flex;align-items:flex-start;gap:4px;flex:0 0 auto}
-.dia{color:var(--silver);padding-top:2px;position:relative}
+.dia{color:var(--gold-hi);padding-top:2px;position:relative}
 .dia svg{width:92px;height:108px}
 .dia.next{color:var(--silver-lo);padding-top:16px}
 .dia.next svg{width:70px;height:82px}
 .dia.next small{position:absolute;top:2px;left:14px;font-size:11px;color:var(--sub)}
 .nowrow .now{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:800;font-size:46px;line-height:1;letter-spacing:-.03em}
-.nowrow .nxt{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:800;font-size:20px;color:var(--silver-lo)}
+.nowrow .nxt{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:800;font-size:20px;color:var(--gold-hi)}
 .nowrow .nxt::before{content:"次 ";font-family:"Zen Kaku Gothic New",system-ui,sans-serif;font-weight:400;font-size:12px;color:var(--sub)}
 
 #ctl{
@@ -186,12 +194,12 @@ textarea{width:100%;min-height:220px;flex:1;font:inherit;font-size:15px;line-hei
 }
 #ctl.hide{opacity:0;transform:translateY(10px);pointer-events:none}
 .bar{height:4px;border-radius:2px;background:#2A2B30;overflow:hidden;margin-bottom:6px;padding:0;position:relative}
-.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#8A8D94,#F4F5F7)}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#7A621A,#E8C766)}
 .bar::after{content:"";position:absolute;inset:-12px 0} /* 押しやすく */
 .times{display:flex;justify-content:space-between;font-size:12px;color:var(--sub);font-variant-numeric:tabular-nums;margin-bottom:8px}
 .btns{display:grid;grid-template-columns:1fr 1.5fr 1fr;gap:10px}
 .btns button{background:rgba(27,27,30,.75);backdrop-filter:blur(8px);min-height:54px;font-weight:500}
-.btns .play{background:linear-gradient(180deg,#F1F2F4,#BFC2C9);color:#0B0B0C;font-size:22px;border-color:#E3E5E9;font-weight:800}
+.btns .play{background:linear-gradient(180deg,#F1F2F4,#BFC2C9);color:#0B0B0C;font-size:22px;border-color:var(--gold);font-weight:800;box-shadow:0 0 0 1px rgba(232,199,102,.35)}
 .mark{display:flex;gap:8px;margin-top:8px}
 .mark button{flex:1;min-height:36px;font-size:13px;white-space:nowrap;padding:0 6px;font-weight:400;color:var(--sub);background:transparent;border-color:var(--line)}
 .mark button.set{color:var(--ink);border-color:var(--silver-lo)}
@@ -203,7 +211,7 @@ textarea{width:100%;min-height:220px;flex:1;font:inherit;font-size:15px;line-hei
 
 <!-- ===== ホーム ===== -->
 <section class="screen on" id="home">
-  <div class="brand"><h1 class="silvertext">EXIT PLAYER</h1><span class="cnt"><b id="cntCur">—</b> / <span id="cntAll">0</span></span></div>
+  <div class="brand"><h1 class="goldtext">EXIT PLAYER</h1><span class="cnt"><b id="cntCur">—</b> / <span id="cntAll">0</span></span></div>
 
   <div class="np">
     <div class="title" id="npTitle">曲を追加してください</div>
@@ -261,7 +269,7 @@ textarea{width:100%;min-height:220px;flex:1;font:inherit;font-size:15px;line-hei
       <div class="seg2"><button id="tabLy" class="on">歌詞</button><button id="tabCh">コード</button><button id="tabSe">構成</button></div>
     </div>
     <div class="nowrow">
-      <div class="nowl"><span class="now silvertext" id="nowchord">—</span><span class="nxt" id="nextchord"></span>
+      <div class="nowl"><span class="now goldtext" id="nowchord">—</span><span class="nxt" id="nextchord"></span>
         <div class="easyrow"><button id="easyBtn">かんたん</button><span id="capo"></span></div></div>
       <div class="dias"><div class="dia" id="dia"></div><div class="dia next" id="dia2"><small>次</small></div></div>
     </div>
@@ -559,8 +567,8 @@ function renderList(){
   vs.forEach(s=>{
     const i=songs.indexOf(s);
     const row=document.createElement("div"); row.className="tr"+(s===cur?" cur":""); row.dataset.id=s.id;
-    row.innerHTML=`<span class="no">${String(i+1).padStart(2,"0")}</span><span class="t"><b></b><small>${s.ext.toUpperCase()}${s.shared?(s.saved?' · <span class="saved">SAVED</span>':" · BAND SHARED"):" · MY SONG"}${s.segs&&s.segs.length?" · CHORDS":""}${lyricsFor(s)?" · LYRICS":""}</small></span>`;
-    row.querySelector("b").textContent=s.title;
+    row.innerHTML=`<span class="no">${String(i+1).padStart(2,"0")}</span><span class="t"><b><span></span></b><small>${s.shared?(s.saved?'<span class="saved">SAVED</span>':"SHARED"):"MY SONG"}${s.segs&&s.segs.length?" · CHORDS":""}${lyricsFor(s)?" · LYRICS":""}</small></span>`;
+    row.querySelector("b span").textContent=s.title;
     const fav=document.createElement("button"); fav.className="fav"+(s.fav?" on":""); fav.textContent="♥"; fav.title="お気に入り";
     fav.addEventListener("click",async e=>{e.stopPropagation();s.fav=!s.fav;await dbPut(metaOf(s));renderList()});
     row.appendChild(fav);
@@ -576,7 +584,18 @@ function renderList(){
     row.addEventListener("click",()=>playSong(s));
     list.appendChild(row);
   });
+  requestAnimationFrame(applyMarquee);
 }
+// 長い曲名だけ、はみ出した分を左右にゆっくり流す
+function applyMarquee(){
+  document.querySelectorAll("#list .tr .t b").forEach(b=>{
+    const sp=b.firstElementChild; if(!sp)return;
+    const over=sp.scrollWidth-b.clientWidth;
+    if(over>4){b.classList.add("marq");b.style.setProperty("--shift",(-over-8)+"px");b.style.setProperty("--dur",Math.max(6,over/25+5)+"s")}
+    else{b.classList.remove("marq");sp.style.transform=""}
+  });
+}
+window.addEventListener("resize",applyMarquee);
 
 async function addFiles(files){
   let n=0;
@@ -715,7 +734,7 @@ function renderSheet(){
   const el=$("sheet"); el.innerHTML="";
   const lines=lyricText.replace(/\r/g,"").split("\n");
   if(!lines.some(l=>l.trim())){el.innerHTML='<div class="empty">歌詞が入っていません。<br>戻って「歌詞を編集」から貼り付けてください。</div>';return}
-  lines.forEach(l=>{const d=document.createElement("div");d.className="ln"+(l.trim()?"":" blank");d.textContent=l.trim()?l:"";el.appendChild(d)});
+  lines.forEach(l=>{const d=document.createElement("div");const isHead=/^\s*\[.*\]\s*$/.test(l);d.className="ln"+(l.trim()?"":" blank")+(isHead?" head":"");d.textContent=l.trim()?l:"";el.appendChild(d)});
 }
 function lyricRange(){const d=audio.duration||0;return [lyStart??0, lyEnd??d]}
 let autoTop=0, dragging=false;
