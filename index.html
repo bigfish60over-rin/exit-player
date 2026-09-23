@@ -166,7 +166,9 @@ textarea{width:100%;min-height:220px;flex:1;font:inherit;font-size:15px;line-hei
   transition:opacity .2s;
 }
 #top::after{content:"";position:absolute;left:0;right:0;top:100%;height:28px;background:linear-gradient(to bottom,rgba(9,9,9,1),rgba(9,9,9,0));pointer-events:none}
-#top.hide{opacity:0;pointer-events:none}
+#top.hide{opacity:1;pointer-events:none;background:transparent}
+#top.hide .seg2,#top.hide .nowrow{opacity:0}
+#top.hide #back{pointer-events:auto;opacity:.85}
 .toprow{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .toprow button{min-height:38px;padding:0 12px;font-size:14px;font-weight:500;background:rgba(27,27,30,.7);backdrop-filter:blur(8px)}
 .seg2{display:inline-flex;border:1px solid var(--gold-lo);border-radius:12px;overflow:hidden;background:rgba(27,27,30,.7);backdrop-filter:blur(8px)}
@@ -759,9 +761,12 @@ $("openStage").addEventListener("click",async()=>{
   loadSongState(cur); renderSheet(); capo=easy?chooseCapo():0; $("easyBtn").classList.toggle("on",easy); $("capo").textContent=easy?(capo?"カポ "+capo+"フレット":"カポなし"):"";
   rows=[]; renderChart(); renderSections(); refreshMarks(); ctlHidden=false; $("ctl").classList.remove("hide"); $("top").classList.remove("hide");
   show("stage"); setView("ly"); curSeg=-2; update();
+  try{history.pushState({exitStage:1},"")}catch(e){}
 });
 function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("on",s.id===id))}
-$("back").addEventListener("click",()=>{show("home");renderList()});
+function goHome(){show("home");renderList();applyMarquee&&requestAnimationFrame(applyMarquee)}
+$("back").addEventListener("click",()=>{if(history.state&&history.state.exitStage){history.back()}else goHome()});
+window.addEventListener("popstate",()=>{if($("stage").classList.contains("on"))goHome()});
 
 // ================= かんたんモード =================
 let easy=false, capo=0;
