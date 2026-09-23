@@ -526,14 +526,16 @@ const CFG={user:"bigfish60over-rin",repo:"exit-player",branch:"main",dir:"music"
 const onPages=/github\.io$/.test(location.hostname);
 const trackUrl=name=>`https://${CFG.user}.github.io/${CFG.repo}/${CFG.dir}/${encodeURIComponent(name)}`;
 const lyricsUrl=()=>`https://${CFG.user}.github.io/${CFG.repo}/lyrics.json`;
-let sharedLyrics={};
+const chordsUrl=()=>`https://${CFG.user}.github.io/${CFG.repo}/chords.json`;
+let sharedLyrics={}, sharedChords={};
 
+let sizeMap={}; try{sizeMap=JSON.parse(localStorage.getItem("exit:sizes")||"{}")}catch(e){}
 async function loadShared(force){
   if(!onPages&&!force)return; // ファイルから開いた時は共有曲は使わない
   let names=null;
   try{
     const r=await fetch(`https://api.github.com/repos/${CFG.user}/${CFG.repo}/contents/${CFG.dir}?ref=${CFG.branch}`,{cache:"no-store"});
-    if(r.ok){const items=await r.json();names=items.filter(it=>it.type==="file"&&/\.(mp3|m4a|wav|ogg|aac)$/i.test(it.name)).map(it=>it.name);try{localStorage.setItem("exit:tracks",JSON.stringify(names))}catch(e){}}
+    if(r.ok){const items=await r.json();const fl=items.filter(it=>it.type==="file"&&/\.(mp3|m4a|wav|ogg|aac)$/i.test(it.name));names=fl.map(it=>it.name);fl.forEach(it=>{if(it.size)sizeMap[it.name]=it.size});try{localStorage.setItem("exit:tracks",JSON.stringify(names));localStorage.setItem("exit:sizes",JSON.stringify(sizeMap))}catch(e){}}
     else if(r.status!==404)throw new Error("GitHub API "+r.status);
     else names=[];
   }catch(e){
@@ -546,14 +548,30 @@ async function loadShared(force){
   const metas=await dbAll();
   const shared=names.map(n=>{
     const id="gh-"+n, m=metas.find(x=>x.id===id)||{};
-    return {id,title:n.replace(/\.[^.]+$/,""),ext:(n.match(/\.([^.]+)$/)||[,"mp3"])[1],file:n,shared:true,url:trackUrl(n),
+    return {id,title:n.replace(/\.[^.]+$/,""),ext:(n.match(/\.([^.]+)$/)||[,"mp3"])[1],file:n,size:sizeMap[n]||0,shared:true,url:trackUrl(n),
       fav:!!m.fav,segs:m.segs||null,lyrics:m.lyrics||"",lyStart:m.lyStart??null,lyEnd:m.lyEnd??null,lyOffset:m.lyOffset||0,secLabels:m.secLabels||{},secAnchors:m.secAnchors||{},saved:!!m.saved,addedAt:0};
   });
   songs=[...shared,...songs.filter(x=>!x.shared)];
   try{const r=await fetch(lyricsUrl(),{cache:"no-store"});if(r.ok)sharedLyrics=await r.json()}catch(e){}
+  try{const r=await fetch(chordsUrl(),{cache:"no-store"});if(r.ok)sharedChords=await r.json()}catch(e){}
+  songs.forEach(s=>{if(s.shared)applyPcChords(s)});
   renderList();
 }
-function lyricsFor(s){return (s.lyrics&&s.lyrics.trim())?s.lyrics:(sharedLyrics[s.title]||sharedLyrics[s.file]||"")}
+function lyricsFor(s){
+  if(s.lyrics&&s.lyrics.trim())return s.lyrics;
+  const direct=sharedLyrics[s.title]||sharedLyrics[s.file]; if(direct)return direct;
+  // ライブ版など：曲名（番号を除いた部分）が含まれている歌詞を使う。一番長く一致したもの
+  const strip=t=>t.replace(/^\s*\d+\s*/,"").trim();
+  let best="",bl=0; for(const k in sharedLyrics){const n=strip(k); if(n.length>2&&s.title.includes(n)&&n.length>bl){best=sharedLyrics[k];bl=n.length}}
+  return best;
+}
+// PC で判定したコード（chords.json）。曲ファイルが差し替えられていたら（サイズ違い）使わない
+function pcChordsFor(s){const c=sharedChords[s.title]; if(!c)return null; if(s.size&&c.size&&s.size!==c.size)return null; return c}
+function applyPcChords(s){
+  const c=pcChordsFor(s); if(!c)return false;
+  s.segs=c.chords.map(([a,b,r,q])=>r<0?{start:a,end:b,name:"N",root:"",q:"",bassNote:""}:{start:a,end:b,name:NOTE[r]+q,root:NOTE[r],q,bassNote:"",rootPc:r});
+  s.bars=c.bars||[]; s.chordSrc="pc"; return true;
+}
 async function getBlob(s){
   const rec=await dbAudioGet(s.id); if(rec&&rec.blob)return rec.blob;
   if(!s.shared)return null;
@@ -590,7 +608,7 @@ function renderList(){
   vs.forEach(s=>{
     const i=songs.indexOf(s);
     const row=document.createElement("div"); row.className="tr"+(s===cur?" cur":""); row.dataset.id=s.id;
-    row.innerHTML=`<span class="no">${String(i+1).padStart(2,"0")}</span><span class="t"><b><span></span></b><small>${s.shared?(s.saved?'<span class="saved">SAVED</span>':"SHARED"):"MY SONG"}${s.segs&&s.segs.length?" · CHORDS":""}${lyricsFor(s)?" · LYRICS":""}</small></span>`;
+    row.innerHTML=`<span class="no">${String(i+1).padStart(2,"0")}</span><span class="t"><b><span></span></b><small>${s.shared?(s.saved?'<span class="saved">SAVED</span>':"SHARED"):"MY SONG"}${s.segs&&s.segs.length?(s.chordSrc==="pc"?" · CHORDS★":" · CHORDS"):""}${lyricsFor(s)?" · LYRICS":""}</small></span>`;
     row.querySelector("b span").textContent=s.title;
     const fav=document.createElement("button"); fav.className="fav"+(s.fav?" on":""); fav.textContent="♥"; fav.title="お気に入り";
     fav.addEventListener("click",async e=>{e.stopPropagation();s.fav=!s.fav;await dbPut(metaOf(s));renderList()});
@@ -716,6 +734,7 @@ $("fFav").addEventListener("click",()=>{filter="fav";$("fFav").classList.add("on
 
 // ================= コード判定（初回のみ） =================
 async function ensureChords(s){
+  if(s.shared&&applyPcChords(s))return true;
   if(s.segs&&s.segs.length)return true;
   $("analyze").classList.add("on"); $("anFill").style.width="0";
   try{
@@ -873,7 +892,7 @@ function computeLineTimes(){
     i=j;
   }
   const ends=starts.map((t,k)=>k+1<groups.length?starts[k+1]:b);
-  const bounds=chordTagList().map(c=>c.start).filter(t=>t>=a-0.5&&t<=b+0.5);
+  const bounds=((cur&&cur.bars&&cur.bars.length)?cur.bars:chordTagList().map(c=>c.start)).filter(t=>t>=a-0.5&&t<=b+0.5);
   const out=[]; let prev=-1e9;
   groups.forEach((g,k)=>{
     const n=g.lines.length; if(!n)return;
