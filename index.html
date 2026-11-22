@@ -149,6 +149,7 @@ textarea{width:100%;min-height:220px;flex:1;font:inherit;font-size:15px;line-hei
 #sheet .ln.head{color:var(--gold-hi);font-size:14px;letter-spacing:.06em;padding-top:16px;cursor:pointer}
 #sheet .ln.head.anch::after{content:" ✓";color:var(--gold-hi)}
 #sheet .ln.head .at{font-size:11px;color:var(--sub);margin-left:8px}
+#sheet .ln .txt .at{font-size:11px;color:var(--gold-hi);margin-left:8px;font-weight:400;white-space:nowrap}
 #sheet .ln.blank{padding:12px 0}
 #sheet .empty{color:var(--sub);text-align:center;padding:30vh 0}
 
@@ -592,7 +593,7 @@ async function loadShared(force){
   const shared=names.map(n=>{
     const id="gh-"+n, m=metas.find(x=>x.id===id)||{};
     return {id,title:n.replace(/\.[^.]+$/,""),ext:(n.match(/\.([^.]+)$/)||[,"mp3"])[1],file:n,size:sizeMap[n]||0,shared:true,url:trackUrl(n),
-      fav:!!m.fav,segs:m.segs||null,lyrics:m.lyrics||"",lyStart:m.lyStart??null,lyEnd:m.lyEnd??null,lyOffset:m.lyOffset||0,secLabels:m.secLabels||{},secAnchors:m.secAnchors||{},saved:!!m.saved,addedAt:0};
+      fav:!!m.fav,segs:m.segs||null,lyrics:m.lyrics||"",lyStart:m.lyStart??null,lyEnd:m.lyEnd??null,lyOffset:m.lyOffset||0,secLabels:m.secLabels||{},secAnchors:m.secAnchors||{},lineAnchors:m.lineAnchors||{},saved:!!m.saved,addedAt:0};
   });
   songs=[...shared,...songs.filter(x=>!x.shared)];
   try{const r=await fetch(lyricsUrl(),{cache:"no-store"});if(r.ok)sharedLyrics=await r.json()}catch(e){}
@@ -632,7 +633,7 @@ function metaOf(s){const {url,...m}=s;return m}
 const $=id=>document.getElementById(id);
 const audio=$("audio");
 let songs=[], cur=null, url=null, filter="all", shuffle=false, repeat=false, wake=null;
-let segs=[], lyricText="", lyStart=null, lyEnd=null, lyOffset=0, secLabels={}, secAnchors={}, rows=[], sections=[], curSeg=-1, view="ly", ctlHidden=false, userScrollUntil=0;
+let segs=[], lyricText="", lyStart=null, lyEnd=null, lyOffset=0, secLabels={}, secAnchors={}, lineAnchors={}, rows=[], sections=[], curSeg=-1, view="ly", ctlHidden=false, userScrollUntil=0;
 const LABELS=["","イントロ","Aメロ","Bメロ","サビ","間奏","Cメロ","大サビ","アウトロ"];
 
 function fmt(t){if(!isFinite(t))t=0;const m=Math.floor(t/60),s=Math.floor(t%60);return m+":"+String(s).padStart(2,"0")}
@@ -849,8 +850,8 @@ async function ensureChords(s){
   }catch(err){console.error(err);toast("この曲は判定できませんでした");return false}
   finally{$("analyze").classList.remove("on")}
 }
-function loadSongState(s){segs=s.segs||[];lyricText=lyricsFor(s);lyStart=s.lyStart??null;lyEnd=s.lyEnd??null;lyOffset=s.lyOffset||0;secLabels=s.secLabels||{};secAnchors=s.secAnchors||{};rows=[];sections=[];curSeg=-2}
-async function save(){if(!cur)return;cur.lyStart=lyStart;cur.lyEnd=lyEnd;cur.lyOffset=lyOffset;cur.secLabels=secLabels;cur.secAnchors=secAnchors;try{await dbPut(metaOf(cur))}catch(e){}}
+function loadSongState(s){segs=s.segs||[];lyricText=lyricsFor(s);lyStart=s.lyStart??null;lyEnd=s.lyEnd??null;lyOffset=s.lyOffset||0;secLabels=s.secLabels||{};secAnchors=s.secAnchors||{};lineAnchors=s.lineAnchors||{};rows=[];sections=[];curSeg=-2}
+async function save(){if(!cur)return;cur.lyStart=lyStart;cur.lyEnd=lyEnd;cur.lyOffset=lyOffset;cur.secLabels=secLabels;cur.secAnchors=secAnchors;cur.lineAnchors=lineAnchors;try{await dbPut(metaOf(cur))}catch(e){}}
 
 $("openStage").addEventListener("click",async()=>{
   if(!cur){toast("先に曲を選んでください");return}
@@ -904,17 +905,29 @@ function renderSheet(){
   const lines=lyricText.replace(/\r/g,"").split("\n");
   if(!lines.some(l=>l.trim())){el.innerHTML='<div class="empty">歌詞が入っていません。<br>戻って「歌詞を編集」から貼り付けてください。</div>';return}
   let sec=0;
-  lines.forEach(l=>{const d=document.createElement("div");const isHead=/^\s*\[.*\]\s*$/.test(l);d.className="ln"+(l.trim()?"":" blank")+(isHead?" head":"");d.dataset.text=l.trim()?l:"";
+  lines.forEach((l,li)=>{const d=document.createElement("div");const isHead=/^\s*\[.*\]\s*$/.test(l);d.className="ln"+(l.trim()?"":" blank")+(isHead?" head":"");d.dataset.text=l.trim()?l:"";
     if(isHead){sec++;d.dataset.sec=sec;d.addEventListener("click",e=>{e.stopPropagation();anchorSection(+d.dataset.sec,d)})}
-    else d.dataset.sec=sec;
+    else{d.dataset.sec=sec;if(l.trim()){d.dataset.li=li;d.addEventListener("click",e=>{if(anchorLine(d))e.stopPropagation()})}}
     el.appendChild(d)});
-  const hint=document.createElement("p"); hint.className="hint"; hint.style.textAlign="center"; hint.textContent="ずれたら、その区切りの見出し（[Chorus] など）を歌い始めの瞬間にタップすると、そこから合い直します。"; el.appendChild(hint);
+  const hint=document.createElement("p"); hint.className="hint"; hint.style.textAlign="center"; hint.textContent="ずれたら、その区切りの見出し（[Chorus] など）や歌詞の行を、曲を流しながら歌い始めの瞬間にタップすると、そこから合い直します。"; el.appendChild(hint);
   layoutChordTags();
 }
 function anchorSection(sec,d){
   if(lyStart==null){toast("先に「歌が始まったらタップ」を押してください");return}
-  secAnchors[sec]=audio.currentTime; save(); layoutChordTags(); highlightChordTags(audio.currentTime||0);
+  secAnchors[sec]=audio.currentTime; skipCapture=true; save(); layoutChordTags(); highlightChordTags(audio.currentTime||0);
   toast("「"+(d.dataset.text||"")+"」の頭を "+fmt(audio.currentTime)+" に合わせました");
+}
+// 歌詞の1行をタップ：その瞬間を「この行の歌い出し」として覚える（もう一度タップすると上書き）
+// 曲を止めている時・指でスクロールした時・長押しの時は合わせない（止めている時は今までどおり操作ボタンの表示切り替え）
+function lineAnchorOf(d){const a=lineAnchors[d.dataset.li];return (a&&a.x===d.dataset.text&&isFinite(a.t))?+a.t:null}
+function anchorLine(d){
+  if(audio.paused)return false;
+  if(touchInfo.recent()&&!touchInfo.isTap())return true; // スクロールのつもりで触れただけ：何もしない
+  if(lyStart==null){toast("先に「歌が始まったらタップ」を押してください");return true}
+  const t=audio.currentTime; lineAnchors[d.dataset.li]={t,x:d.dataset.text}; skipCapture=true;
+  save(); layoutChordTags(); highlightChordTags(t);
+  toast("「"+d.dataset.text.slice(0,14)+"」を "+fmt(t)+" に合わせました");
+  return true;
 }
 function renderLine(d,marks){
   // marks: [{frac(0〜1の横位置),name,start,end}]
@@ -923,6 +936,7 @@ function renderLine(d,marks){
   const crow=document.createElement("div"); crow.className="crow";
   marks.forEach(m=>{const sp=document.createElement("span");sp.textContent=m.name;sp.dataset.start=m.start;sp.dataset.end=m.end;sp.style.left=(m.frac*100).toFixed(1)+"%";crow.appendChild(sp)});
   const txt=document.createElement("div"); txt.className="txt"; txt.textContent=text;
+  if(d.dataset.at){const at=document.createElement("span");at.className="at";at.textContent="✓ "+d.dataset.at;txt.appendChild(at)}
   d.appendChild(crow); d.appendChild(txt);
   // 重なるコードは右へ少しずらす。画面からはみ出す時は字を小さくし、それでも入らなければ2段に折り返す
   const place=()=>{let right=-1e9;[...crow.children].forEach((sp,i)=>{sp.style.left=(marks[i].frac*100).toFixed(1)+"%";const l=sp.offsetLeft;if(l<right+6){sp.style.left=(right+6)+"px"}right=sp.offsetLeft+sp.offsetWidth});return right<=crow.clientWidth+4};
@@ -943,6 +957,7 @@ function chordTagList(){
 }
 function layoutChordTags(){
   const sheet=$("sheet"); const lnEls=[...sheet.querySelectorAll(".ln")]; if(!lnEls.length)return;
+  lnEls.forEach(d=>{if(d.dataset.li!=null){const a=lineAnchorOf(d);d.classList.toggle("anch",a!=null);if(a!=null)d.dataset.at=fmt(a);else delete d.dataset.at}});
   lnEls.forEach(d=>renderLine(d,[]));
   lnEls.forEach(d=>{if(d.classList.contains("head")){const k=+d.dataset.sec;d.classList.toggle("anch",secAnchors[k]!=null);if(secAnchors[k]!=null){const at=document.createElement("span");at.className="at";at.textContent=fmt(secAnchors[k]);d.appendChild(at)}}});
   if(lyStart==null||!segs.length){lineTimes=null;return}
@@ -980,37 +995,49 @@ function lineGroups(){
   });
   return groups;
 }
-// 行の開始時刻：区切りの頭（タップ済み）と歌い出し・歌い終わりを支点に行数で割り、コードの変わり目に吸い付かせる
+// 行の開始時刻：手で合わせた行・区切りの頭（タップ済み）・歌い出し・歌い終わりを支点にし、
+// 支点のあいだの行は行数で均等に割って、小節の頭に吸い付かせる。手で合わせた行の時刻がいちばん優先
+// （行を1つも合わせていない時は、今までとまったく同じ結果になる）
 function computeLineTimes(){
   lineTimes=null; if(lyStart==null)return;
   const [a,b]=lyricRange(); if(!(b>a))return;
   const groups=lineGroups(); if(!groups.length)return;
-  const starts=groups.map((g,i)=>secAnchors[g.sec]!=null?+secAnchors[g.sec]:(i===0?a:null));
-  let i=0;
-  while(i<groups.length){
-    if(starts[i]!=null){i++;continue}
-    let j=i;while(j<groups.length&&starts[j]==null)j++;
-    const t0=starts[i-1], t1=j<groups.length?starts[j]:b;
-    const cnt=[];for(let k=i-1;k<j;k++)cnt.push(groups[k].lines.length);
-    const tot=cnt.reduce((x,y)=>x+y,0)||1;
-    let acc=0;for(let k=i-1;k<j;k++){starts[k]=t0+(t1-t0)*acc/tot;acc+=cnt[k-(i-1)]}
-    i=j;
+  // 行に 0,1,2… と番号を振る。before[p]＝番号pの手前で終わる時刻、after[p]＝番号pから始まる時刻（支点）
+  const lines=[], before={}, after={}, gInfo=[];
+  if(secAnchors[groups[0].sec]==null)after[0]=a; // 歌い出し
+  groups.forEach((g,gi)=>{
+    const p=lines.length, sa=secAnchors[g.sec]!=null?+secAnchors[g.sec]:null;
+    gInfo.push({p,n:g.lines.length,sa});
+    if(sa!=null){if(before[p]==null)before[p]={t:sa,gi};after[p]=sa}
+    g.lines.forEach((el,m)=>{
+      const la=lineAnchorOf(el), q=lines.length;
+      if(la!=null){after[q]=la;if(before[q]==null||before[q].gi===gi)before[q]={t:la,gi}}
+      lines.push({el,gi,hard:la!=null||(m===0&&sa!=null)});
+    });
+  });
+  const P=lines.length; if(!P||after[0]==null)return;
+  if(before[P]==null)before[P]={t:b};
+  for(let p0=0;p0<P;){
+    let p1=p0+1; while(p1<P&&before[p1]==null)p1++;
+    const A=after[p0], B=before[p1].t, slot=Math.max(0,B-A)/(p1-p0);
+    for(let q=p0;q<p1;q++){const x=lines[q];x.guess=A+slot*(q-p0);x.lo=A;x.hi=B;x.slot=slot}
+    p0=p1;
   }
-  const ends=starts.map((t,k)=>k+1<groups.length?starts[k+1]:b);
+  // 小節の頭に吸い付ける範囲：その行の区切りの中（今までと同じ）かつ前後の支点のあいだ
+  const gStart=gi=>{const G=gInfo[gi];return G.sa!=null?G.sa:(G.p<P?lines[G.p].guess:b)};
+  const gEnd=gi=>{if(gi+1>=gInfo.length)return b;const H=gInfo[gi+1];if(H.sa!=null)return H.sa;return before[H.p]!=null?before[H.p].t:(H.p<P?lines[H.p].guess:b)};
   const bounds=((cur&&cur.bars&&cur.bars.length)?cur.bars:chordTagList().map(c=>c.start)).filter(t=>t>=a-0.5&&t<=b+0.5);
   const out=[]; let prev=-1e9;
-  groups.forEach((g,k)=>{
-    const n=g.lines.length; if(!n)return;
-    const t0=starts[k], t1=Math.max(ends[k],t0+0.5);
-    g.lines.forEach((el,m)=>{
-      let t=t0+(t1-t0)*m/n;
+  lines.forEach(x=>{
+    let t=x.guess;
+    if(!x.hard){
+      const g0=gStart(x.gi), g1=Math.max(gEnd(x.gi),g0+0.5), lo=Math.max(x.lo,g0), hi=Math.min(x.hi,g1);
       let best=null,bd=1e9;
-      bounds.forEach(x=>{if(x<t0-0.3||x>t1+0.3)return;if(x<=prev+0.2)return;const d=Math.abs(x-t);if(d<bd){bd=d;best=x}});
-      if(m===0&&secAnchors[g.sec]!=null)t=t0;
-      else if(best!=null&&bd<=(t1-t0)/n*0.75)t=best;
-      if(t<=prev)t=prev+0.05;
-      prev=t; out.push({el,t});
-    });
+      bounds.forEach(v=>{if(v<lo-0.3||v>hi+0.3)return;if(v<=prev+0.2)return;const d=Math.abs(v-t);if(d<bd){bd=d;best=v}});
+      if(best!=null&&bd<=x.slot*0.75)t=best;
+    }
+    if(t<=prev)t=prev+0.05;
+    prev=t; out.push({el:x.el,t});
   });
   lineTimes=out.length?out:null;
 }
@@ -1157,7 +1184,7 @@ function setStart(){lyStart=audio.currentTime;lyOffset=0;if(lyEnd!=null&&lyEnd<=
 $("markStart").addEventListener("click",setStart);
 $("startTap").addEventListener("click",setStart);
 $("markEnd").addEventListener("click",()=>{lyEnd=audio.currentTime;if(lyStart!=null&&lyStart>=lyEnd)lyStart=null;refreshMarks();save();layoutChordTags()});
-$("markClear").addEventListener("click",()=>{lyStart=null;lyEnd=null;lyOffset=0;secAnchors={};refreshMarks();refreshStartTap();save();$("sheet").scrollTop=0;layoutChordTags()});
+$("markClear").addEventListener("click",()=>{lyStart=null;lyEnd=null;lyOffset=0;secAnchors={};lineAnchors={};refreshMarks();refreshStartTap();save();$("sheet").scrollTop=0;layoutChordTags()});
 audio.addEventListener("play",()=>{$("play").textContent="❚❚";$("hplay").textContent="❚❚";requestAnimationFrame(loop)});
 audio.addEventListener("pause",()=>{$("play").textContent="▶";$("hplay").textContent="▶";update()});
 audio.addEventListener("seeked",()=>{userScrollUntil=0;curSeg=-2;update();if(view==="ly")autoScrollSheet(audio.currentTime||0)});
@@ -1168,10 +1195,16 @@ for(const id of ["chart","sect"]){
   $(id).addEventListener("touchstart",()=>{userScrollUntil=performance.now()+5000},{passive:true});
   $(id).addEventListener("wheel",()=>{userScrollUntil=performance.now()+5000},{passive:true});
 }
-const sheetEl=$("sheet"); let settle=null;
+const sheetEl=$("sheet"); let settle=null, skipCapture=false;
 function captureOffset(){if(lyStart==null)return;lyOffset=sheetEl.scrollTop-autoTarget(audio.currentTime||0);save();layoutChordTags();highlightChordTags(audio.currentTime||0)}
-sheetEl.addEventListener("touchstart",()=>{dragging=true},{passive:true});
-sheetEl.addEventListener("touchend",()=>{clearTimeout(settle);settle=setTimeout(()=>{captureOffset();dragging=false},250)},{passive:true});
+// 指の動きを覚えて「タップ」か「スクロール」かを見分ける（10px以上動いた・0.6秒以上押していた → タップではない）
+const touchInfo={x:0,y:0,t0:0,t1:0,moved:false,
+  recent(){return performance.now()-this.t1<800},
+  isTap(){return !this.moved&&this.t1-this.t0<600}};
+sheetEl.addEventListener("touchstart",e=>{dragging=true;skipCapture=false;const p=e.touches[0];touchInfo.x=p.clientX;touchInfo.y=p.clientY;touchInfo.t0=touchInfo.t1=performance.now();touchInfo.moved=false},{passive:true});
+sheetEl.addEventListener("touchmove",e=>{const p=e.touches[0];if(Math.hypot(p.clientX-touchInfo.x,p.clientY-touchInfo.y)>10)touchInfo.moved=true},{passive:true});
+// 行や見出しをタップして合わせた時は、表示位置のずらし（指でずらした分）を覚え直さない
+sheetEl.addEventListener("touchend",()=>{touchInfo.t1=performance.now();clearTimeout(settle);settle=setTimeout(()=>{if(!skipCapture)captureOffset();skipCapture=false;dragging=false},250)},{passive:true});
 sheetEl.addEventListener("wheel",()=>{dragging=true;clearTimeout(settle);settle=setTimeout(()=>{captureOffset();dragging=false},300)},{passive:true});
 
 // ================= PWA =================
